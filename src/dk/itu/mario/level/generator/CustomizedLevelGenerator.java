@@ -17,7 +17,7 @@ public class CustomizedLevelGenerator implements LevelGenerator{
 
 	@Override
 	public LevelInterface generateLevel(String detailedInfo) {
-		// TODO Auto-generated method stub
+		System.out.println("detailedInfo");
 		return null;
 	}
 
