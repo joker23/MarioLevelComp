@@ -85,4 +85,55 @@ public class GamePlay implements Serializable {
 		}
 		return gp;
 	}
+
+	public String toString(){
+		String ret = "";
+		ret += "completionTime = " + completionTime + "\n";
+		ret += "totalTime = " + totalTime + "\n";
+		ret += "jumpsNumber = " + jumpsNumber + "\n";
+		ret += "duckNumber = " + duckNumber + "\n";
+		ret += "timeSpentDucking = " + timeSpentDucking + "\n";
+		ret += "timesPressedRun = " + timesPressedRun + "\n";
+		ret += "timeSpentRunning = " + timeSpentRunning + "\n";
+		ret += "timeRunningRight = " + timeRunningRight + "\n";
+		ret += "timeRunningLeft = " + timeRunningLeft + "\n";
+		ret += "emptyBlocksDestroyed = " + emptyBlocksDestroyed + "\n";
+		ret += "coinsCollected = " + coinsCollected + "\n";
+		ret += "coinBlocksDestroyed = " + coinBlocksDestroyed + "\n";
+		ret += "powerBlocksDestroyed = " + powerBlocksDestroyed + "\n";
+		ret += "kickedShells = " + kickedShells + "\n";
+		ret += "enemyKillByFire = " + enemyKillByFire + "\n";
+		ret += "enemyKillByKickingShell = " + enemyKillByKickingShell + "\n";
+		ret += "totalTimeLittleMode = " + totalTimeLittleMode + "\n";
+		ret += "totalTimeLargeMode = " + totalTimeLargeMode + "\n";
+		ret += "totalTimeFireMode = " + totalTimeFireMode + "\n";
+		ret += "timesSwichingPower = " + timesSwichingPower + "\n";
+		ret += "aimlessJumps = " + aimlessJumps + "\n";
+		ret += "percentageBlocksDestroyed = " + percentageBlocksDestroyed + "\n";
+		ret += "percentageCoinBlocksDestroyed = " + percentageCoinBlocksDestroyed + "\n";
+		ret += "percentageEmptyBlockesDestroyed = " + percentageEmptyBlockesDestroyed + "\n";
+		ret += "percentagePowerBlockDestroyed = " + percentagePowerBlockDestroyed + "\n";
+		ret += "timesOfDeathByFallingIntoGap = " + timesOfDeathByFallingIntoGap + "\n";
+		ret += "totalEnemies = " + totalEnemies + "\n";
+		ret += "totalEmptyBlocks = " + totalEmptyBlocks + "\n";
+		ret += "totalCoinBlocks = " + totalCoinBlocks + "\n";
+		ret += "totalpowerBlocks = " + totalpowerBlocks + "\n";
+		ret += "totalCoins = " + totalCoins + "\n";
+		ret += "timesOfDeathByRedTurtle = " + timesOfDeathByRedTurtle + "\n";
+		ret += "timesOfDeathByGoomba = " + timesOfDeathByGoomba + "\n";
+		ret += "timesOfDeathByGreenTurtle = " + timesOfDeathByGreenTurtle + "\n";
+		ret += "timesOfDeathByArmoredTurtle = " + timesOfDeathByArmoredTurtle + "\n";
+		ret += "timesOfDeathByJumpFlower = " + timesOfDeathByJumpFlower + "\n";
+		ret += "timesOfDeathByCannonBall = " + timesOfDeathByCannonBall + "\n";
+		ret += "timesOfDeathByChompFlower = " + timesOfDeathByChompFlower + "\n";
+		ret += "RedTurtlesKilled = " + RedTurtlesKilled + "\n";
+		ret += "GreenTurtlesKilled = " + GreenTurtlesKilled + "\n";
+		ret += "ArmoredTurtlesKilled = " + ArmoredTurtlesKilled + "\n";
+		ret += "GoombasKilled = " + GoombasKilled + "\n";
+		ret += "CannonBallKilled = " + CannonBallKilled + "\n";
+		ret += "JumpFlowersKilled = " + JumpFlowersKilled + "\n";
+		ret += "ChompFlowersKilled = " + ChompFlowersKilled + "\n";
+
+		return ret;
+	}
 }
