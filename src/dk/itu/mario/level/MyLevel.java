@@ -8,7 +8,7 @@ import dk.itu.mario.MarioInterface.LevelInterface;
 import dk.itu.mario.engine.sprites.SpriteTemplate;
 import dk.itu.mario.engine.sprites.Enemy;
 
-
+//TODO think about changing the boolean to int return
 public class MyLevel extends Level{
 
 	//Terrain Code
@@ -64,10 +64,15 @@ public class MyLevel extends Level{
 		xExit = width - 3;
 		yExit = floor;
 
-	//	placeHill(30, 3, 40);
-	//	placeHill(40, 2, 10);
-	//	placeGap(15,6);
-		placeStairsRight(15, 1, 7, GROUND);
+		//	placeHill(30, 3, 40);
+		//	placeHill(40, 2, 10);
+		//	placeGap(15,6);
+		placeStairs(13, 1, 7, GROUND, true);
+
+		placeTube(23, 7, new SpriteTemplate(JUMP_FLOWER, !WINGED));
+
+		placeStairs(30, 1, 7, GROUND, false);
+
 
 		fixWalls();
 	}
@@ -175,9 +180,29 @@ public class MyLevel extends Level{
 		return true;
 	}
 
-	//TODO place stairs wrapper with place stairs left
-	//TODO place pipes
-	public boolean placeStairsRight (int xo, int dy, int len, byte type) {
+	/**place stairs
+	 * places stairs on the map
+	 *	NOTE: 	mario could not clear dy > 3
+	 *			type should only be GROUND or ROCK...if it is something else...then it might be hard
+	 * @param xo : initial x
+	 * @param dy : change in y at every step
+	 * @param len: length of stairs (dy * len is the max height)
+	 * @param type : type of material that builds the stairs
+	 * @param right : is this stair facing the right?
+	 */
+	private boolean placeStairs(int xo, int dy, int len, byte type, boolean right) {
+		if(right) {
+			return placeStairsRight(xo, dy, len, type);
+		} else {
+			return placeStairsLeft(xo, dy, len, type);
+		}
+	}
+
+	private boolean placeStairsRight (int xo, int dy, int len, byte type) {
+
+		if(xo < 2 || xo + len > width-2){
+			return false;
+		}
 
 		int yo = findFloor(xo);
 		int counter = 0;
@@ -199,6 +224,68 @@ public class MyLevel extends Level{
 		return true;
 	}
 
+	private boolean placeStairsLeft(int xo, int dy, int len, byte type){
+
+		if(xo < 2 || xo+len > width-2){
+			return false;
+		}
+
+		int yo = len * dy;
+		int floor = findFloor(xo);
+
+		if(type == GROUND){
+			for(int y=floor; y>=yo; y --) {
+				setBlock(xo-1, y, type);
+			}
+		}
+
+		int counter = 0;
+		for(int x=xo; x<xo+len; x++){
+			int maxy = yo + (dy * (counter ++));
+			for(int y=floor; y>=maxy; y--){
+				setBlock(x, y, type);
+			}
+		}
+
+		return true;
+	}
+
+	//TODO place pipes
+	//TODO bottom up
+	private int placeTube(int xo, int h, SpriteTemplate enemy) {
+
+		int length = 2;
+		int floor = findFloor(xo);
+
+		if (enemy != null) {
+			setSpriteTemplate(xo, h, enemy);
+		}
+
+		for (int x = xo; x < xo + length; x++) {
+
+			for (int y = 0; y < height; y++) {
+				if (y > floor) {
+					setBlock(x, y,GROUND);
+
+				}
+				else if (y >= h){
+					int xPic = 10 + x - xo;
+
+					if (y == h) {
+						//tube top
+						setBlock(x, y, (byte) (xPic + 0 * 16));
+					}
+					else {
+						//tube side
+						setBlock(x, y, (byte) (xPic + 1 * 16));
+					}
+
+				}
+			}
+		}
+
+		return length;
+	}
 
 	/***********************************utility functions******************************************/
 	/**
@@ -221,94 +308,22 @@ public class MyLevel extends Level{
 		return floor;
 	}
 
+	/**
+	 * @return closest platform given x
+	 */
+	private int findPlatform(int x) {
+
+		int plat = 0;
+		while(getBlock(x, plat + 1) == 0){
+			plat ++;
+		}
+
+		return plat;
+	}
+
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	public MyLevel(int width, int height) {
 		super(width, height);
-	}
-
-	private int buildJump(int xo, int maxLength) {
-		gaps++;
-		//jl: jump length
-		//js: the number of blocks that are available at either side for free
-		int js = random.nextInt(4) + 2;
-		int jl = random.nextInt(2) + 2;
-		int length = js * 2 + jl;
-
-		boolean hasStairs = random.nextInt(3) == 0;
-
-		int floor = height - 1 - random.nextInt(4);
-		//run from the start x position, for the whole length
-		for (int x = xo; x < xo + length; x++) {
-			if (x < xo + js || x > xo + length - js - 1) {
-				//run for all y's since we need to paint blocks upward
-				for (int y = 0; y < height; y++) {	//paint ground up until the floor
-					if (y >= floor) {
-						setBlock(x, y, GROUND);
-					}
-					//if it is above ground, start making stairs of rocks
-					else if (hasStairs) {	//LEFT SIDE
-						if (x < xo + js) { //we need to max it out and level because it wont
-							//paint ground correctly unless two bricks are side by side
-							if (y >= floor - (x - xo) + 1) {
-								setBlock(x, y, ROCK);
-							}
-						}
-						else { //RIGHT SIDE
-							if (y >= floor - ((xo + length) - x) + 2) {
-								setBlock(x, y, ROCK);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return length;
-	}
-
-
-	private int buildTubes(int xo, int maxLength) {
-		int length = random.nextInt(10) + 5;
-		if (length > maxLength) length = maxLength;
-
-		int floor = height - 1 - random.nextInt(4);
-		int xTube = xo + 1 + random.nextInt(4);
-		int tubeHeight = floor - random.nextInt(2) - 2;
-		for (int x = xo; x < xo + length; x++) {
-			if (x > xTube + 1) {
-				xTube += 3 + random.nextInt(4);
-				tubeHeight = floor - random.nextInt(2) - 2;
-			}
-			if (xTube >= xo + length - 2) xTube += 10;
-
-			if (x == xTube && random.nextInt(11) < difficulty + 1) {
-				setSpriteTemplate(x, tubeHeight, new SpriteTemplate(Enemy.ENEMY_FLOWER, false));
-				ENEMIES++;
-			}
-
-			for (int y = 0; y < height; y++) {
-				if (y >= floor) {
-					setBlock(x, y,GROUND);
-
-				}
-				else {
-					if ((x == xTube || x == xTube + 1) && y >= tubeHeight) {
-						int xPic = 10 + x - xTube;
-
-						if (y == tubeHeight) {
-							//tube top
-							setBlock(x, y, (byte) (xPic + 0 * 16));
-						}
-						else {
-							//tube side
-							setBlock(x, y, (byte) (xPic + 1 * 16));
-						}
-					}
-				}
-			}
-		}
-
-		return length;
 	}
 
 

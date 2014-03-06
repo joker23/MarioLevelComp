@@ -8,7 +8,7 @@ import dk.itu.mario.engine.sprites.SpriteTemplate;
 
 public class Level implements LevelInterface {
 
-	protected static final byte ae) (0 + 1 * 16);
+	protected static final byte BLOCK_EMPTY		= (byte) (0 + 1 * 16);
 	protected static final byte BLOCK_POWERUP	= (byte) (4 + 2 + 1 * 16);
 	protected static final byte BLOCK_COIN		= (byte) (4 + 1 + 1 * 16);
 	protected static final byte GROUND			= (byte) (1 + 9 * 16);
