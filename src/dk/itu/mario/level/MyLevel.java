@@ -10,17 +10,30 @@ import dk.itu.mario.engine.sprites.Enemy;
 
 
 public class MyLevel extends Level{
-	//Some useful finals
-	public static final byte CANNON_PILLAR 		= 14 + 2 * 16;
-	public static final byte CANNON_NECK		= 14 + 1 * 16;
-	public static final byte CANNON_HEAD		= 14 + 0 * 16;
+
+	//Terrain Code
+	private static final byte 	CANNON_PILLAR 	= 14 + 2 * 16;
+	private static final byte 	CANNON_NECK		= 14 + 1 * 16;
+	private static final byte	CANNON_HEAD		= 14 + 0 * 16;
+
+	private static final byte	NOTHING			= 0;
+
+	//Enemy Code
+	private static final int	RED_TURTLE		= 0;
+	private static final int	GREEN_TURTLE	= 1;
+	private static final int	GOOMPA			= 2;
+	private static final int	ARMORED_TURTLE	= 3;
+	private static final int 	JUMP_FLOWER		= 4;
+	private static final int	CANNON_BALL		= 5;
+	private static final int	CHOMP_FLOWER	= 6;
+	private static final boolean WINGED			= true;		//is the enemy winged?
 
 	//Store information about the level
-	public   int ENEMIES = 0; //the number of enemies the level contains
-	public   int BLOCKS_EMPTY = 0; // the number of empty blocks
-	public   int BLOCKS_COINS = 0; // the number of coin blocks
-	public   int BLOCKS_POWER = 0; // the number of power blocks
-	public   int COINS = 0; //These are the coins in boxes that Mario collect
+	public   int ENEMIES 		= 0; //the number of enemies the level contains
+	public   int BLOCKS_EMPTY 	= 0; // the number of empty blocks
+	public   int BLOCKS_COINS 	= 0; // the number of coin blocks
+	public   int BLOCKS_POWER 	= 0; // the number of power blocks
+	public   int COINS 			= 0; //These are the coins in boxes that Mario collect
 
 	private static Random levelSeedRandom = new Random();
 	public static long lastSeed;
@@ -31,12 +44,16 @@ public class MyLevel extends Level{
 	private int type;
 	private int gaps;
 
-	public MyLevel(int width, int height) {
-		super(width, height);
-	}
 
-	public MyLevel(int enemy, boolean winged){
+	/**
+	 * this is a constructor used for testing
+	 */
+	public MyLevel(){
 		this(100, 15);
+		difficulty = 0;
+		type = 0;
+		gaps = 0;
+		random = new Random();
 
 		for(int i=0; i<width; i++){
 			setBlock(i,height - 1,GROUND);
@@ -47,91 +64,12 @@ public class MyLevel extends Level{
 		xExit = width - 3;
 		yExit = floor;
 
-		placeEnemy(15, enemy, winged);
+	//	placeHill(30, 3, 40);
+	//	placeHill(40, 2, 10);
+	//	placeGap(15,6);
+		placeStairsRight(15, 1, 7, GROUND);
 
 		fixWalls();
-	}
-
-
-	public MyLevel(int width, int height, long seed, int difficulty, int type, GamePlay playerMetrics) {
-		this(width, height);
-		creat(seed, difficulty, type);
-	}
-
-	public void creat(long seed, int difficulty, int type) {
-		this.type = type;
-		this.difficulty = difficulty;
-
-		lastSeed = seed;
-		random = new Random(seed);
-
-		//create the start location
-		int length = 0;
-		length += buildStraight(0, width, true);
-
-		//create all of the medium sections
-		while (length < width - 64) {
-			//length += buildZone(length, width - length);
-			length += buildStraight(length, width-length, true);
-		//	length += buildStraight(length, width-length, false);
-		//	length += buildHillStraight(length, width-length);
-		//	length += buildJump(length, width-length);
-		//	length += buildTubes(length, width-length);
-		//	length += buildCannons(length, width-length);
-		}
-
-		//set the end piece
-		int floor = height - 1 - random.nextInt(4);
-
-		xExit = length + 8;
-		yExit = floor;
-
-		// fills the end piece
-		for (int x = length; x < width; x++) {
-			for (int y = 0; y < height; y++) {
-				if (y >= floor) {
-					setBlock(x, y, GROUND);
-				}
-			}
-		}
-
-		if (type == LevelInterface.TYPE_CASTLE || type == LevelInterface.TYPE_UNDERGROUND) {
-			int ceiling = 0;
-			int run = 0;
-			for (int x = 0; x < width; x++) {
-				if (run-- <= 0 && x > 4) {
-					ceiling = random.nextInt(4);
-					run = random.nextInt(4) + 4;
-				}
-				for (int y = 0; y < height; y++) {
-					if ((x > 4 && y <= ceiling) || x < 1) {
-						setBlock(x, y, GROUND);
-					}
-				}
-			}
-		}
-		fixWalls();
-	}
-
-	/**
-	 * @return if the block at x and y is occupied already
-	 */
-
-	private boolean occupied(int x, int y) {
-		return getBlock(x,y) != 0;
-	}
-
-	/**
-	 * @return floor at a given x
-	 */
-	private int findFloor (int x) {
-
-		int floor = 0;
-		while(getBlock(x, floor+1) != GROUND) {
-			floor ++;
-		}
-
-		return floor;
 	}
 
 	/**
@@ -189,13 +127,105 @@ public class MyLevel extends Level{
 		return true;
 	}
 
+	// places an enemy on the floor
 	private boolean placeEnemy(int x, int type, boolean winged) {
 		return placeEnemy(x, findFloor(x), type, winged);
 	}
 
+	/**
+	 * makes a gap for mario to jump across
+	 * NOTES: in walking mode mario can clear gap length 4
+	 * 		  in running mode mario can clear gap length 7
+	 * @param xo : initial x coordinate
+	 * @param len : length of the gap
+	 */
+	private boolean placeGap(int xo, int len){
+		if(xo + len >= width){
+			return false;
+		}
+
+		for(int x=xo; x < xo + len; x++ ) {
+			for(int y=0; y<height; y++) {
+				if(getBlock(x, y) == GROUND){
+					setBlock(x, y, NOTHING);
+				}
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * places a hill
+	 * NOTES : Mario could only clear a height 3 hill
+	 *
+	 * @param xo : starting x coordinate
+	 * @param h : height of the hill
+	 * @param len : length of the hill
+	 */
+	private boolean placeHill (int xo, int h, int len) {
+
+		int yo = findFloor(xo) - h;
+
+		for(int x = xo; x < xo + len; x ++ ) {
+			for(int y=yo; y<height; y++) {
+				setBlock(x, y, GROUND);
+			}
+		}
+
+		return true;
+	}
+
+	//TODO place stairs wrapper with place stairs left
+	//TODO place pipes
+	public boolean placeStairsRight (int xo, int dy, int len, byte type) {
+
+		int yo = findFloor(xo);
+		int counter = 0;
+		for(int x = xo; x<xo+len; x ++ ){
+			int y = yo - (dy * (counter ++));
+			for(int k= yo; k>=y; k--){
+				setBlock(x, k, type);
+			}
+		}
+
+		if(type == GROUND){
+			int x = xo + len;
+			int maxy = yo - (dy * (counter - 1));
+			for(int y = yo; y>=maxy; y--){
+				setBlock(x, y, type);
+			}
+		}
+
+		return true;
+	}
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/***********************************utility functions******************************************/
+	/**
+	 * @return if the block at x and y is occupied already
+	 */
+	private boolean occupied(int x, int y) {
+		return getBlock(x,y) != 0;
+	}
+
+	/**
+	 * @return floor at a given x
+	 */
+	private int findFloor (int x) {
+
+		int floor = 0;
+		while(getBlock(x, floor+1) != GROUND) {
+			floor ++;
+		}
+
+		return floor;
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	public MyLevel(int width, int height) {
+		super(width, height);
+	}
+
 	private int buildJump(int xo, int maxLength) {
 		gaps++;
 		//jl: jump length
@@ -236,123 +266,6 @@ public class MyLevel extends Level{
 		return length;
 	}
 
-	private int buildCannons(int xo, int maxLength) {
-		int length = random.nextInt(10) + 2;
-		if (length > maxLength) length = maxLength;
-
-		int floor = height - 1 - random.nextInt(4);
-		int xCannon = xo + 1 + random.nextInt(4);
-		for (int x = xo; x < xo + length; x++) {
-			if (x > xCannon) {
-				xCannon += 2 + random.nextInt(4);
-			}
-			if (xCannon == xo + length - 1) xCannon += 10;
-			int cannonHeight = floor - random.nextInt(4) - 1;
-
-			for (int y = 0; y < height; y++) {
-				if (y >= floor) {
-					setBlock(x, y, GROUND);
-				}
-				else {
-					if (x == xCannon && y >= cannonHeight) {
-						if (y == cannonHeight) {
-							setBlock(x, y, (byte) (14 + 0 * 16));
-						}
-						else if (y == cannonHeight + 1) {
-							setBlock(x, y, (byte) (14 + 1 * 16));
-						}
-						else {
-							setBlock(x, y, (byte) (14 + 2 * 16));
-						}
-					}
-				}
-			}
-		}
-		return length;
-	}
-
-	private int buildHillStraight(int xo, int maxLength) {
-		int length = random.nextInt(10) + 10;
-		if (length > maxLength) length = maxLength;
-
-		int floor = height - 1 - random.nextInt(4);
-		for (int x = xo; x < xo + length; x++) {
-			for (int y = 0; y < height; y++) {
-				if (y >= floor) {
-					setBlock(x, y, GROUND);
-				}
-			}
-		}
-
-		addEnemyLine(xo + 1, xo + length - 1, floor - 1);
-
-		int h = floor;
-
-		boolean keepGoing = true;
-
-		boolean[] occupied = new boolean[length];
-		while (keepGoing) {
-			h = h - 2 - random.nextInt(3);
-
-			if (h <= 0) {
-				keepGoing = false;
-			}
-			else {
-				int l = random.nextInt(5) + 3;
-				int xxo = random.nextInt(length - l - 2) + xo + 1;
-
-				if (occupied[xxo - xo] || occupied[xxo - xo + l] || occupied[xxo - xo - 1] || occupied[xxo - xo + l + 1]) {
-					keepGoing = false;
-				}
-				else {
-					occupied[xxo - xo] = true;
-					occupied[xxo - xo + l] = true;
-					addEnemyLine(xxo, xxo + l, h - 1);
-					if (random.nextInt(4) == 0) {
-						decorate(xxo - 1, xxo + l + 1, h);
-						keepGoing = false;
-					}
-					for (int x = xxo; x < xxo + l; x++) {
-						for (int y = h; y < floor; y++) {
-							int xx = 5;
-							if (x == xxo) xx = 4;
-							if (x == xxo + l - 1) xx = 6;
-							int yy = 9;
-							if (y == h) yy = 8;
-
-							if (getBlock(x, y) == 0) {
-								setBlock(x, y, (byte) (xx + yy * 16));
-							}
-							else {
-								if (getBlock(x, y) == HILL_TOP_LEFT) setBlock(x, y, HILL_TOP_LEFT_IN);
-								if (getBlock(x, y) == HILL_TOP_RIGHT) setBlock(x, y, HILL_TOP_RIGHT_IN);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return length;
-	}
-
-	private void addEnemyLine(int x0, int x1, int y) {
-		for (int x = x0; x < x1; x++) {
-			if (random.nextInt(35) < difficulty + 1) {
-				int type = random.nextInt(4);
-
-				if (difficulty < 1) {
-					type = Enemy.ENEMY_GOOMBA;
-				}
-				else if (difficulty < 3) {
-					type = random.nextInt(3);
-				}
-
-				setSpriteTemplate(x, y, new SpriteTemplate(type, random.nextInt(35) < difficulty));
-				ENEMIES++;
-			}
-		}
-	}
 
 	private int buildTubes(int xo, int maxLength) {
 		int length = random.nextInt(10) + 5;
@@ -398,94 +311,6 @@ public class MyLevel extends Level{
 		return length;
 	}
 
-	private int buildStraight(int xo, int maxLength, boolean safe) {
-		int length = random.nextInt(10) + 2;
-
-		if (safe)
-			length = 10 + random.nextInt(5);
-
-		if (length > maxLength)
-			length = maxLength;
-
-		int floor = height - 1 - random.nextInt(4);
-
-		//runs from the specified x position to the length of the segment
-		for (int x = xo; x < xo + length; x++) {
-			for (int y = 0; y < height; y++) {
-				if (y >= floor) {
-					setBlock(x, y, GROUND);
-				}
-			}
-		}
-
-		if (!safe) {
-			if (length > 5) {
-				decorate(xo, xo + length, floor);
-			}
-		}
-
-		return length;
-	}
-
-	private void decorate(int xStart, int xLength, int floor) {
-		//if its at the very top, just return
-		if (floor < 1)
-			return;
-
-		//        boolean coins = random.nextInt(3) == 0;
-		boolean rocks = true;
-
-		//add an enemy line above the box
-		addEnemyLine(xStart + 1, xLength - 1, floor - 1);
-
-		int s = random.nextInt(4);
-		int e = random.nextInt(4);
-
-		if (floor - 2 > 0){
-			if ((xLength - 1 - e) - (xStart + 1 + s) > 1){
-				for(int x = xStart + 1 + s; x < xLength - 1 - e; x++){
-					setBlock(x, floor - 2, COIN);
-					COINS++;
-				}
-			}
-		}
-
-		s = random.nextInt(4);
-		e = random.nextInt(4);
-
-		//this fills the set of blocks and the hidden objects inside them
-		if (floor - 4 > 0){
-			if ((xLength - 1 - e) - (xStart + 1 + s) > 2) {
-				for (int x = xStart + 1 + s; x < xLength - 1 - e; x++) {
-					if (rocks) {
-						if (x != xStart + 1 && x != xLength - 2 && random.nextInt(3) == 0) {
-							if (random.nextInt(4) == 0) {
-								setBlock(x, floor - 4, BLOCK_POWERUP);
-								BLOCKS_POWER++;
-							}
-							else
-							{	//the fills a block with a hidden coin
-								setBlock(x, floor - 4, BLOCK_COIN);
-								BLOCKS_COINS++;
-							}
-						}
-						else if (random.nextInt(4) == 0) {
-							if (random.nextInt(4) == 0) {
-								setBlock(x, floor - 4, (byte) (2 + 1 * 16));
-							}
-							else {
-								setBlock(x, floor - 4, (byte) (1 + 1 * 16));
-							}
-						}
-						else {
-							setBlock(x, floor - 4, BLOCK_EMPTY);
-							BLOCKS_EMPTY++;
-						}
-					}
-				}
-			}
-		}
-	}
 
 	private void fixWalls() {
 		boolean[][] blockMap = new boolean[width + 1][height + 1];
