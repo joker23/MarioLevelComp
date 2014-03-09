@@ -9,6 +9,7 @@ import dk.itu.mario.engine.sprites.SpriteTemplate;
 import dk.itu.mario.engine.sprites.Enemy;
 
 //TODO think about changing the boolean to int return
+//TODO think about separating things into layers...such as layer 0 is ground layer 1 is 3-4 (where mario can jump to)
 public class MyLevel extends Level{
 
 	//Terrain Code
@@ -73,6 +74,7 @@ public class MyLevel extends Level{
 
 		placeStairs(30, 1, 7, GROUND, false);
 
+		placeBlockArray(new int[]{1,1,1,1}, 60, floor - 4);
 
 		fixWalls();
 	}
@@ -250,6 +252,38 @@ public class MyLevel extends Level{
 		return true;
 	}
 
+	/**
+	 * generates a array of continuous blocks
+	 *
+	 * @param blockArray : contents of the blocks in array form
+	 * 		0 : empty block
+	 * 		1 : block with coin
+	 * 		2 : block with powerup
+	 */
+	private boolean placeBlockArray(int[] blockArray, int xo, int y) {
+		if(xo < 10 || blockArray.length + xo > width - 10) {
+			return false;
+		}
+
+		for(int x=xo; x<xo + blockArray.length; x++) {
+			switch (blockArray[x - xo]) {
+				case 0 :
+					setBlock(x, y, BLOCK_EMPTY);
+					break;
+				case 1 :
+					setBlock(x, y, BLOCK_COIN);
+					break;
+				case 2 :
+					setBlock(x, y, BLOCK_POWERUP);
+					break;
+				default :
+					//do nothing
+			}
+		}
+
+		return true;
+	}
+
 	//TODO place pipes
 	//TODO bottom up
 	private int placeTube(int xo, int h, SpriteTemplate enemy) {
@@ -279,11 +313,9 @@ public class MyLevel extends Level{
 						//tube side
 						setBlock(x, y, (byte) (xPic + 1 * 16));
 					}
-
 				}
 			}
 		}
-
 		return length;
 	}
 
