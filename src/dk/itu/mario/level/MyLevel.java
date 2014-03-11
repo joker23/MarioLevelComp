@@ -1,6 +1,6 @@
 package dk.itu.mario.level;
 
-import java.util.Random;
+import java.util.*;
 
 import dk.itu.mario.MarioInterface.Constraints;
 import dk.itu.mario.MarioInterface.GamePlay;
@@ -75,6 +75,16 @@ public class MyLevel extends Level{
 		placeStairs(30, 1, 7, GROUND, false);
 
 		placeBlockArray(new int[]{1,1,1,1}, 60, floor - 4);
+
+		boolean[][] canReach = bfs(height-1, 0);
+
+		for(int i=0; i<height; i++){
+			for(int j=0; j<width; j++){
+				if(canReach[i][j]) {
+					setBlock(j, i, COIN);
+				}
+			}
+		}
 
 		fixWalls();
 	}
@@ -319,6 +329,40 @@ public class MyLevel extends Level{
 		return length;
 	}
 
+	private boolean[][] bfs(int x, int y) {
+		int[] dx = {0, 0, -1, 1};
+		int[] dy = {1, -1, 0, 0};
+
+		boolean[][] res = new boolean[height][width];
+		boolean[][] vis = new boolean[height][width];
+
+		vis[x][y] = true;
+		res[x][y] = true;
+
+		Queue<Integer> xq = new LinkedList<Integer>();
+		Queue<Integer> yq = new LinkedList<Integer>();
+		xq.add(x);
+		yq.add(y);
+
+		while(!xq.isEmpty()){
+			int currx = xq.poll();
+			int curry = yq.poll();
+
+			vis[currx][curry] = true;
+			for(int i=0; i<dx.length; i++){
+				int newx = dx[i] + currx;
+				int newy = dy[i] + curry;
+				if(canReach(newx, newy, newx>=currx) && !vis[newx][newy]) {
+					res[newx][newy] = true;
+					vis[newx][newy] = true;
+					xq.add(newx);
+					yq.add(newy);
+				}
+			}
+		}
+
+		return res;
+	}
 	/***********************************utility functions******************************************/
 	/**
 	 * @return if the block at x and y is occupied already
@@ -338,6 +382,39 @@ public class MyLevel extends Level{
 		}
 
 		return floor;
+	}
+
+	private boolean canReach(int x, int y, boolean lower) {
+		if(x<0 || x>=height || y<0 || y>=width) {
+			return false;
+		}
+
+		if(occupied(y, x)) {
+			return false;
+		}
+		if(!lower){
+			int dy = findPlatform(y, x);
+			if(dy >=5){
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * @return closest platform given x and y
+	 */
+	private int findPlatform(int x, int y) {
+		if(getBlock(x, y) != 0) {
+			return 0;
+		}
+		int plat = y;
+		while(getBlock(x, plat + 1) == 0){
+			plat ++;
+		}
+
+		return plat - y;
 	}
 
 	/**
