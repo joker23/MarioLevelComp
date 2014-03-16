@@ -13,8 +13,9 @@ Logic
 	1) ground
 	2) blocks (part of the terrains)
 	3) obstacles (stairs, gaps, cannons, tubes)
-	4) coins
-	5) enemies
+	4) enemies
+	5) coins
+- use line sweep to tell where how mario can move...
 
 Enemy And Objects
 =====

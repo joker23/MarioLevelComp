@@ -76,13 +76,20 @@ public class MyLevel extends Level{
 
 		placeBlockArray(new int[]{1,1,1,1}, 60, floor - 4);
 
-		boolean[][] canReach = bfs(height-1, 0);
+		int[][] sweeprez = sweep();
+		int[] nextFloor = getNextFloor(sweeprez);
 
-		for(int i=0; i<height; i++){
-			for(int j=0; j<width; j++){
-				if(canReach[i][j]) {
-					setBlock(j, i, COIN);
-				}
+		for(int i=0; i<nextFloor.length; i++) {
+			if(nextFloor[i] > 0) {
+				setBlock(i, nextFloor[i], BLOCK_EMPTY);
+			}
+		}
+
+		sweeprez = sweep();
+		for(int y=0; y<height; y++){
+			for(int x=0; x<width; x++){
+				if(sweeprez[y][x] > 0)
+					setBlock(x,y, COIN);
 			}
 		}
 
@@ -329,39 +336,66 @@ public class MyLevel extends Level{
 		return length;
 	}
 
-	private boolean[][] bfs(int x, int y) {
-		int[] dx = {0, 0, -1, 1};
-		int[] dy = {1, -1, 0, 0};
+	private int[] getNextFloor(int[][] board){
+		int[] ret = new int[width];
+		for(int x = 8; x < width - 8; x ++ ){
+			for(int y = 1; y < height; y ++) {
+				if(board[y+1][x-1] == 2) {
+					ret[x] = y;
+					break;
+				}
+			}
+		}
+		return ret;
+	}
 
-		boolean[][] res = new boolean[height][width];
-		boolean[][] vis = new boolean[height][width];
-
-		vis[x][y] = true;
-		res[x][y] = true;
-
-		Queue<Integer> xq = new LinkedList<Integer>();
-		Queue<Integer> yq = new LinkedList<Integer>();
-		xq.add(x);
-		yq.add(y);
-
-		while(!xq.isEmpty()){
-			int currx = xq.poll();
-			int curry = yq.poll();
-
-			vis[currx][curry] = true;
-			for(int i=0; i<dx.length; i++){
-				int newx = dx[i] + currx;
-				int newy = dy[i] + curry;
-				if(canReach(newx, newy, newx>=currx) && !vis[newx][newy]) {
-					res[newx][newy] = true;
-					vis[newx][newy] = true;
-					xq.add(newx);
-					yq.add(newy);
+	private int[][] sweep() {
+		int maxjump = 4;
+		int[][] ret = new int[height][width];
+		for(int i=0; i<height - 1; i++){
+			if(occupied(0, i + 1)){
+				ret[i][0] = maxjump;
+			}
+		}
+		for(int y=height - 1; y > 0; y--) {
+			for(int x=1; x<width; x++) {
+				if(occupied(x, y)) { //blocked
+					ret[y][x] = 0;
+				}
+				else if(occupied(x, y + 1)) { //is the floor
+					ret[y][x] = maxjump;
+				}
+				else if(occupied(x-1, y)) {
+					ret[y][x] = maxjump/2;
+				}
+				else { //in the air somewhere
+					ret[y][x] = Math.max(0,Math.max( //don't go under negative
+								ret[y+1][x-1] - 1,	//jump from ground or continue jump
+								ret[y+1][x] -1));	//jump from standstill
 				}
 			}
 		}
 
-		return res;
+		for(int y=height - 1; y > 0; y--) {
+			for(int x=width-2; x>0; x--) {
+				if(occupied(x, y)) { //blocked
+					ret[y][x] = 0;
+				}
+				else if(occupied(x, y + 1)) { //is the floor
+					ret[y][x] = Math.max(maxjump, ret[y][x]);
+				}
+				else if(occupied(x+1, y)) {
+					ret[y][x] = Math.max(maxjump/2, ret[y][x]);
+				}
+				else { //in the air somewhere
+					ret[y][x] = Math.max(ret[y][x],Math.max( //don't go under negative
+								ret[y+1][x+1] - 1,	//jump from ground or continue jump
+								ret[y+1][x]-1));	//jump from standstill
+				}
+			}
+		}
+
+		return ret;
 	}
 	/***********************************utility functions******************************************/
 	/**
