@@ -10,6 +10,7 @@ import dk.itu.mario.engine.sprites.Enemy;
 
 //TODO think about changing the boolean to int return
 //TODO think about separating things into layers...such as layer 0 is ground layer 1 is 3-4 (where mario can jump to)
+//TODO look for stray ground blocks...
 public class MyLevel extends Level{
 
 	//Terrain Code
@@ -39,59 +40,91 @@ public class MyLevel extends Level{
 	private static Random levelSeedRandom = new Random();
 	public static long lastSeed;
 
-	Random random;
+	private Random random;
 
 	private int difficulty;
 	private int type;
 	private int gaps;
-
+	private int hills;
+	private int stairs;
+	private double first_level;
+	private double second_level;
+	private int max_level_length;
 
 	/**
 	 * this is a constructor used for testing
 	 */
 	public MyLevel(){
-		this(100, 15);
-		difficulty = 0;
-		type = 0;
-		gaps = 0;
-		random = new Random();
+		this(320, 15);
+		this.first_level = .25;
+		this.second_level = .25;
+		this.difficulty = 0;
+		this.type = 0;
+		this.gaps = 8;
+		this.stairs = 1;
+		this.hills = 15;
+		this.random = new Random();
 
+		//initialize the ground
 		for(int i=0; i<width; i++){
 			setBlock(i,height - 1,GROUND);
 		}
 
-		int floor = height - 1;
 
-		xExit = width - 3;
-		yExit = floor;
+		int[][] momentum = sweep();
+		while(hills --> 0) {
+			int xo = random.nextInt(width-30) + 10;
+			int len = random.nextInt(width/6);
+			int h = random.nextInt(2) + 1;
+			placeHill(xo, h, len);
+		}
 
+		momentum = sweep();
+
+		//places gaps
+		while(gaps --> 0) {
+			int x1, len;
+			while(true){
+				x1 = random.nextInt(width - 30) + 10;
+				int floor = findFloor(x1);
+				if(floor < 0) continue;
+				len = random.nextInt(momentum[floor][x1] * 2) + 2;
+				if(findFloor(x1 + len) < 0 ) continue;
+				break;
+			}
+
+			placeGap(x1, len);
+		}
 		//	placeHill(30, 3, 40);
 		//	placeHill(40, 2, 10);
 		//	placeGap(15,6);
-		placeStairs(13, 1, 7, GROUND, true);
+	placeStairs(25, 1, 7, GROUND, true);
 
-		placeTube(23, 7, new SpriteTemplate(JUMP_FLOWER, !WINGED));
+	//	placeTube(23, 7, new SpriteTemplate(JUMP_FLOWER, !WINGED));
 
-		placeStairs(30, 1, 7, GROUND, false);
+	placeStairs(30, 1, 7, GROUND, false);
 
-		placeBlockArray(new int[]{1,1,1,1}, 60, floor - 4);
+	//	placeBlockArray(new int[]{1,1,1,1}, 60, findFloor(60) - 4);
 
-		int[][] sweeprez = sweep();
-		int[] nextFloor = getNextFloor(sweeprez);
+	//	int[][] sweeprez = sweep();
+	//	int[] nextFloor = getNextFloor(sweeprez);
 
-		for(int i=0; i<nextFloor.length; i++) {
-			if(nextFloor[i] > 0) {
-				setBlock(i, nextFloor[i], BLOCK_EMPTY);
-			}
-		}
+	//	for(int i=0; i<nextFloor.length; i++) {
+	//		if(nextFloor[i] > 0) {
+	//			setBlock(i, nextFloor[i], BLOCK_EMPTY);
+	//		}
+	//	}
 
-		sweeprez = sweep();
-		for(int y=0; y<height; y++){
-			for(int x=0; x<width; x++){
-				if(sweeprez[y][x] > 0)
-					setBlock(x,y, COIN);
-			}
-		}
+	//	sweeprez = sweep();
+	//	for(int y=0; y<height; y++){
+	//		for(int x=0; x<width; x++){
+	//			if(sweeprez[y][x] > 0)
+	//				setBlock(x,y, COIN);
+	//		}
+	//	}
+
+		xExit = width - 3;
+		yExit = findFloor(xExit) + 1;
 
 		fixWalls();
 	}
@@ -411,11 +444,11 @@ public class MyLevel extends Level{
 	private int findFloor (int x) {
 
 		int floor = 0;
-		while(getBlock(x, floor+1) != GROUND) {
+		while(floor < height && getBlock(x, floor+1) != GROUND) {
 			floor ++;
 		}
 
-		return floor;
+		return floor == height ? -1 : floor;
 	}
 
 	private boolean canReach(int x, int y, boolean lower) {
