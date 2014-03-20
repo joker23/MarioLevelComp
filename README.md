@@ -16,6 +16,7 @@ Logic
 	4) enemies
 	5) coins
 - use line sweep to tell where how mario can move...
+- used the clean method to get rid of all lone Ground blocks to make the game look more legit
 
 Enemy And Objects
 =====

@@ -88,7 +88,7 @@ public class MyLevel extends Level{
 				x1 = random.nextInt(width - 30) + 10;
 				int floor = findFloor(x1);
 				if(floor < 0) continue;
-				len = random.nextInt(momentum[floor][x1] * 2) + 2;
+				len = random.nextInt((int)(momentum[floor][x1] * 1.5)) + 2;
 				if(findFloor(x1 + len) < 0 ) continue;
 				break;
 			}
@@ -126,6 +126,7 @@ public class MyLevel extends Level{
 		xExit = width - 3;
 		yExit = findFloor(xExit) + 1;
 
+		clean();
 		fixWalls();
 	}
 
@@ -502,6 +503,22 @@ public class MyLevel extends Level{
 		super(width, height);
 	}
 
+	//this method will take out all lone ground blocks
+	private void clean(){
+		for(int x = 1; x<width-1; x++){
+			for(int y=0; y<height; y++){
+				if(getBlock(x, y) == GROUND){
+					if(getBlock(x-1, y) != GROUND && getBlock(x+1, y) != GROUND){ //LONE BLOCK
+						setBlock(x, y, ROCK); //replace it with a rock so that it will still be functionally the same
+					}
+
+					if(y<height - 1 && getBlock(x, y + 1) != GROUND){ //floating block...remove it
+						setBlock(x, y, (byte)0);
+					}
+				}
+			}
+		}
+	}
 
 	private void fixWalls() {
 		boolean[][] blockMap = new boolean[width + 1][height + 1];
