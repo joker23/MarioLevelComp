@@ -70,13 +70,18 @@ public class MyLevel extends Level{
 			setBlock(i,height - 1,GROUND);
 		}
 
-
 		int[][] momentum = sweep();
+		boolean[] vis = new boolean[width]; // make sure our hiils are not stacking
+
 		while(hills --> 0) {
 			int xo = random.nextInt(width-30) + 10;
-			int len = random.nextInt(width/6);
+			int len = random.nextInt(width/5);
 			int h = random.nextInt(2) + 1;
-			placeHill(xo, h, len);
+			if (vis[xo] || !placeHill(xo, h, len)) {
+				hills ++;
+			} else {
+				vis[xo] = true;
+			}
 		}
 
 		momentum = sweep();
@@ -87,7 +92,7 @@ public class MyLevel extends Level{
 			while(true){
 				x1 = random.nextInt(width - 30) + 10;
 				int floor = findFloor(x1);
-				if(floor < 0) continue;
+				if(floor < 0) continue; //don't stack gaps...
 				len = random.nextInt((int)(momentum[floor][x1] * 1.5)) + 2;
 				if(findFloor(x1 + len) < 0 ) continue;
 				break;
@@ -95,33 +100,64 @@ public class MyLevel extends Level{
 
 			placeGap(x1, len);
 		}
-		//	placeHill(30, 3, 40);
-		//	placeHill(40, 2, 10);
-		//	placeGap(15,6);
-	placeStairs(25, 1, 7, GROUND, true);
 
-	//	placeTube(23, 7, new SpriteTemplate(JUMP_FLOWER, !WINGED));
+		momentum = sweep();
+		int numBlocks = (int) Math.ceil(width * first_level); //number of blocks we want to cover the first floor with
+		int[] nextFloor = getNextFloor(momentum);
 
-	placeStairs(30, 1, 7, GROUND, false);
+		for(int i: nextFloor){
+			System.out.print(i);
+		}
+		while(numBlocks > 0) {
+			int xo = random.nextInt(width - 20) + 10;
+			int y = nextFloor[xo];
+			if(y == height) {
+				continue;
+			}
+			int maxdisplacement = 0;
+			for(int i=0; i<width - xo; i++){
+				if(momentum[y][i + xo] != momentum[y][xo]){
+					break;
+				} maxdisplacement ++;
+			}
 
-	//	placeBlockArray(new int[]{1,1,1,1}, 60, findFloor(60) - 4);
+			if(maxdisplacement < 4) {
+				continue;
+			}
 
-	//	int[][] sweeprez = sweep();
-	//	int[] nextFloor = getNextFloor(sweeprez);
+			int len = random.nextInt(maxdisplacement - 3) + 3;
 
-	//	for(int i=0; i<nextFloor.length; i++) {
-	//		if(nextFloor[i] > 0) {
-	//			setBlock(i, nextFloor[i], BLOCK_EMPTY);
-	//		}
-	//	}
+			int[] blocks = new int[len];
+			placeBlockArray(blocks, xo, y);
+			numBlocks -= len;
+		}
+		// placeHill(30, 3, 40);
+		// placeHill(40, 2, 10);
+		// placeGap(15,6);
+		// placeStairs(25, 1, 7, GROUND, true);
 
-	//	sweeprez = sweep();
-	//	for(int y=0; y<height; y++){
-	//		for(int x=0; x<width; x++){
-	//			if(sweeprez[y][x] > 0)
-	//				setBlock(x,y, COIN);
-	//		}
-	//	}
+		// placeTube(23, 7, new SpriteTemplate(JUMP_FLOWER, !WINGED));
+
+		// placeStairs(30, 1, 7, GROUND, false);
+
+		// placeBlockArray(new int[]{1,1,1,1}, 60, findFloor(60) - 4);
+
+		// int[][] sweeprez = sweep();
+		// int[] nextFloor = getNextFloor(sweeprez);
+
+		//	for(int i=0; i<nextFloor.length; i++) {
+		//		if(nextFloor[i] > 0) {
+		//			setBlock(i, nextFloor[i], BLOCK_EMPTY);
+		//		}
+		//	}
+
+		//	sweeprez = sweep();
+		//	for(int y=0; y<height; y++){
+		//		for(int x=0; x<width; x++){
+		//			if(sweeprez[y][x] > 0)
+		//				setBlock(x,y, COIN);
+		//		}
+		//	}
 
 		xExit = width - 3;
 		yExit = findFloor(xExit) + 1;
@@ -223,6 +259,10 @@ public class MyLevel extends Level{
 	private boolean placeHill (int xo, int h, int len) {
 
 		int yo = findFloor(xo) - h;
+
+		if(yo < Math.ceil(height/2)) {
+			return false;
+		}
 
 		for(int x = xo; x < xo + len; x ++ ) {
 			for(int y=yo; y<height; y++) {
@@ -373,7 +413,7 @@ public class MyLevel extends Level{
 	private int[] getNextFloor(int[][] board){
 		int[] ret = new int[width];
 		for(int x = 8; x < width - 8; x ++ ){
-			for(int y = 1; y < height; y ++) {
+			for(int y = 1; y < height - 1; y ++) {
 				if(board[y+1][x-1] == 2) {
 					ret[x] = y;
 					break;
@@ -391,9 +431,12 @@ public class MyLevel extends Level{
 				ret[i][0] = maxjump;
 			}
 		}
-		for(int y=height - 1; y > 0; y--) {
+		for(int y=height - 2; y > 0; y--) {
 			for(int x=1; x<width; x++) {
 				if(occupied(x, y)) { //blocked
+					ret[y][x] = 0;
+				}
+				else if(y+1 == height) { //if we are at a gap
 					ret[y][x] = 0;
 				}
 				else if(occupied(x, y + 1)) { //is the floor
@@ -410,9 +453,12 @@ public class MyLevel extends Level{
 			}
 		}
 
-		for(int y=height - 1; y > 0; y--) {
+		for(int y=height - 2; y > 0; y--) {
 			for(int x=width-2; x>0; x--) {
 				if(occupied(x, y)) { //blocked
+					ret[y][x] = 0;
+				}
+				else if(y+1 == height) {
 					ret[y][x] = 0;
 				}
 				else if(occupied(x, y + 1)) { //is the floor
