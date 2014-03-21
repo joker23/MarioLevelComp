@@ -8,6 +8,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+//TODO network passes the parameters through multiple trees and add / subtract from them until we are good
+
 public class GamePlay implements Serializable {
 
 	private static final long serialVersionUID = 1L;
