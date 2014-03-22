@@ -42,11 +42,16 @@ public class MyLevel extends Level{
 
 	private Random random;
 
-	private int difficulty;
+	private int difficulty; //how difficult we want the round
 	private int type;
-	private int gaps;
-	private int hills;
-	private int stairs;
+	private int gaps;	//number of gaps in the level
+	private int hills;	//number of hills in the level
+	private int stairs;	//number of stairs in the level
+	private int pipes;	//number of pipes in the level
+	private int cannons;	//number of cannons in the level
+	private int enemies; //this might be separated
+	private int coins; //number of coins in the level
+	private int coinCluster;	//chaos coefficient of the coins
 	private double first_level;
 	private double second_level;
 	private int max_level_length;
@@ -56,13 +61,18 @@ public class MyLevel extends Level{
 	 */
 	public MyLevel(){
 		this(320, 15);
-		this.first_level = .25;
-		this.second_level = .25;
+		this.first_level = .1;
+		this.second_level = .1;
 		this.difficulty = 0;
 		this.type = 0;
 		this.gaps = 8;
 		this.stairs = 1;
 		this.hills = 15;
+		this.pipes = 5;
+		this.cannons = 2;
+		this.enemies = 30;
+		this.coins = 100;
+		this.coinCluster = 3;
 		this.random = new Random();
 
 		//initialize the ground
@@ -101,13 +111,40 @@ public class MyLevel extends Level{
 			placeGap(x1, len);
 		}
 
+		while(pipes --> 0) {
+			int xo = random.nextInt(width - 20) + 10;
+			int y = findFloor(xo);
+			int height = random.nextInt(2) + 2;
+			y -= height;
+
+			if(y < 4 || getBlock(xo, y) != 0) {
+				pipes ++;
+				continue;
+			}
+
+			placeTube(xo, y, (random.nextInt(3) == 2) ? new SpriteTemplate(JUMP_FLOWER, !WINGED) : null);
+		}
+
+		while(cannons --> 0) {
+			int xo = random.nextInt(width - 20) + 10;
+			int y = findFloor(xo);
+			int height = random.nextInt(3) + 1;
+			y -= height;
+
+			if(y < 4) {
+				cannons ++;
+				continue;
+			}
+
+			if(!placeCannon(xo, y)) {
+				cannons ++;
+			}
+		}
+
 		momentum = sweep();
 		int numBlocks = (int) Math.ceil(width * first_level); //number of blocks we want to cover the first floor with
 		int[] nextFloor = getNextFloor(momentum);
 
-		for(int i: nextFloor){
-			System.out.print(i);
-		}
 		while(numBlocks > 0) {
 			int xo = random.nextInt(width - 20) + 10;
 			int y = nextFloor[xo];
@@ -131,6 +168,65 @@ public class MyLevel extends Level{
 			placeBlockArray(blocks, xo, y);
 			numBlocks -= len;
 		}
+
+		momentum = sweep();
+		numBlocks = (int) Math.ceil(width * second_level); //number of blocks we want to cover the first floor with
+		nextFloor = getNextFloor(momentum);
+
+		for(int i: nextFloor){
+			System.out.print(i);
+		}
+		while(numBlocks > 0) {
+			int xo = random.nextInt(width - 20) + 10;
+			int y = nextFloor[xo];
+			if(y < 3) {
+				continue;
+			}
+			int maxdisplacement = 0;
+			for(int i=0; i<width - xo; i++){
+				if(momentum[y][i + xo] != momentum[y][xo]){
+					break;
+				} maxdisplacement ++;
+			}
+
+			if(maxdisplacement < 4) {
+				continue;
+			}
+
+			int len = random.nextInt(maxdisplacement - 3) + 3;
+
+			int[] blocks = new int[len];
+			placeBlockArray(blocks, xo, y);
+			numBlocks -= len;
+		}
+
+		momentum = sweep();
+
+		while(enemies --> 0) {
+			int xo = random.nextInt(width - 20) + 10;
+			int y = findFloor(xo);
+			if(occupied(xo, y)) {
+				enemies ++;
+				continue;
+			}
+			placeEnemy(xo, y, GOOMPA, !WINGED);
+		}
+
+		while(coins --> 0) {
+			int x = random.nextInt(width - 20) + 10;
+			int y = random.nextInt(height - 5) + 2;
+
+			if(occupied(x, y) || momentum[y][x] < coinCluster) {
+				coins ++;
+				continue;
+			}
+
+			setBlock(x, y, COIN);
+		}
+
+
+
+
 		// placeHill(30, 3, 40);
 		// placeHill(40, 2, 10);
 		// placeGap(15,6);
@@ -175,8 +271,12 @@ public class MyLevel extends Level{
 	 *
 	 * @return width of the cannon (1)
 	 */
-	private int buildCannon (int x, int yCannon, int floor) {
+	private boolean placeCannon (int x, int yCannon) {
+		int floor = findFloor(x);
 
+		if(getBlock(x, yCannon) != 0) {
+			return false;
+		}
 		for(int y = 0; y<height; y++) {
 			if (y >= floor) {
 				setBlock(x, y, GROUND);
@@ -190,7 +290,7 @@ public class MyLevel extends Level{
 				}
 			}
 		}
-		return 1;
+		return true;
 	}
 
 	/**
@@ -375,8 +475,6 @@ public class MyLevel extends Level{
 		return true;
 	}
 
-	//TODO place pipes
-	//TODO bottom up
 	private int placeTube(int xo, int h, SpriteTemplate enemy) {
 
 		int length = 2;
@@ -442,9 +540,6 @@ public class MyLevel extends Level{
 				else if(occupied(x, y + 1)) { //is the floor
 					ret[y][x] = maxjump;
 				}
-				else if(occupied(x-1, y)) {
-					ret[y][x] = maxjump/2;
-				}
 				else { //in the air somewhere
 					ret[y][x] = Math.max(0,Math.max( //don't go under negative
 								ret[y+1][x-1] - 1,	//jump from ground or continue jump
@@ -463,9 +558,6 @@ public class MyLevel extends Level{
 				}
 				else if(occupied(x, y + 1)) { //is the floor
 					ret[y][x] = Math.max(maxjump, ret[y][x]);
-				}
-				else if(occupied(x+1, y)) {
-					ret[y][x] = Math.max(maxjump/2, ret[y][x]);
 				}
 				else { //in the air somewhere
 					ret[y][x] = Math.max(ret[y][x],Math.max( //don't go under negative
