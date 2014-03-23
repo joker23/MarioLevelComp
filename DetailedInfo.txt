@@ -1,16 +1,4 @@
 StartTime = -17
-Jump:  StTime = 22 EdTime = 34
-CollectCoin:  time = 41
-CollectCoin:  time = 48
-Jump:  StTime = 39 EdTime = 51
-CollectCoin:  time = 51
-RightMove: StTime = 8 EdTime = 739
-Jump:  StTime = 59 EdTime = 71
-RightMove: StTime = 64 EdTime = 749
-StompKill:  EnemyType = 2 time = 91
-CollectCoin:  time = 92
-Jump:  StTime = 73 EdTime = 102
-RunState: StTime = 8 EdTime = 105
-LittleState: StTime = -17 EdTime = 105
-Totaltime = 122
+LittleState: StTime = -17 EdTime = 127
+Totaltime = 144
 Die:  EnemyType = 2

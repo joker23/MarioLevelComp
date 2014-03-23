@@ -62,7 +62,7 @@ public class MyLevel extends Level{
 	public MyLevel(){
 		this(320, 15);
 		this.first_level = .1;
-		this.second_level = .1;
+		this.second_level = .5;
 		this.difficulty = 0;
 		this.type = 0;
 		this.gaps = 8;
@@ -103,7 +103,7 @@ public class MyLevel extends Level{
 				x1 = random.nextInt(width - 30) + 10;
 				int floor = findFloor(x1);
 				if(floor < 0) continue; //don't stack gaps...
-				len = random.nextInt((int)(momentum[floor][x1] * 1.5)) + 2;
+				len = random.nextInt((int)(momentum[floor][x1])) + 2;
 				if(findFloor(x1 + len) < 0 ) continue;
 				break;
 			}
@@ -117,7 +117,7 @@ public class MyLevel extends Level{
 			int height = random.nextInt(2) + 2;
 			y -= height;
 
-			if(y < 4 || getBlock(xo, y) != 0) {
+			if(y < 4 || getBlock(xo, y) != 0 || vis[xo]) {
 				pipes ++;
 				continue;
 			}
@@ -131,7 +131,7 @@ public class MyLevel extends Level{
 			int height = random.nextInt(3) + 1;
 			y -= height;
 
-			if(y < 4) {
+			if(y < 4 || vis[xo]) {
 				cannons ++;
 				continue;
 			}
@@ -162,7 +162,7 @@ public class MyLevel extends Level{
 				continue;
 			}
 
-			int len = random.nextInt(maxdisplacement - 3) + 3;
+			int len = random.nextInt(Math.min(maxdisplacement, 10) - 3) + 3;
 
 			int[] blocks = new int[len];
 			placeBlockArray(blocks, xo, y);
@@ -193,7 +193,7 @@ public class MyLevel extends Level{
 				continue;
 			}
 
-			int len = random.nextInt(maxdisplacement - 3) + 3;
+			int len = random.nextInt(Math.min(maxdisplacement, 10) - 3) + 3;
 
 			int[] blocks = new int[len];
 			placeBlockArray(blocks, xo, y);
@@ -223,37 +223,6 @@ public class MyLevel extends Level{
 
 			setBlock(x, y, COIN);
 		}
-
-
-
-
-		// placeHill(30, 3, 40);
-		// placeHill(40, 2, 10);
-		// placeGap(15,6);
-		// placeStairs(25, 1, 7, GROUND, true);
-
-		// placeTube(23, 7, new SpriteTemplate(JUMP_FLOWER, !WINGED));
-
-		// placeStairs(30, 1, 7, GROUND, false);
-
-		// placeBlockArray(new int[]{1,1,1,1}, 60, findFloor(60) - 4);
-
-		// int[][] sweeprez = sweep();
-		// int[] nextFloor = getNextFloor(sweeprez);
-
-		//	for(int i=0; i<nextFloor.length; i++) {
-		//		if(nextFloor[i] > 0) {
-		//			setBlock(i, nextFloor[i], BLOCK_EMPTY);
-		//		}
-		//	}
-
-		//	sweeprez = sweep();
-		//	for(int y=0; y<height; y++){
-		//		for(int x=0; x<width; x++){
-		//			if(sweeprez[y][x] > 0)
-		//				setBlock(x,y, COIN);
-		//		}
-		//	}
 
 		xExit = width - 3;
 		yExit = findFloor(xExit) + 1;
