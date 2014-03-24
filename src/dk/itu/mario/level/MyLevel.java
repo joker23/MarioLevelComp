@@ -1,6 +1,7 @@
 package dk.itu.mario.level;
 
 import java.util.*;
+import java.awt.Point;
 
 import dk.itu.mario.MarioInterface.Constraints;
 import dk.itu.mario.MarioInterface.GamePlay;
@@ -42,8 +43,8 @@ public class MyLevel extends Level{
 
 	private Random random;
 
-	private int difficulty; //how difficult we want the round
-	private int type;
+	private LinkedList<Point> blockList;
+
 	private int gaps;	//number of gaps in the level
 	private int hills;	//number of hills in the level
 	private int stairs;	//number of stairs in the level
@@ -52,8 +53,15 @@ public class MyLevel extends Level{
 	private int enemies; //this might be separated
 	private int coins; //number of coins in the level
 	private int coinCluster;	//chaos coefficient of the coins
-	private double first_level;
-	private double second_level;
+	private int powerUpBlocks;	//number of powerup blocks
+	private int type;
+
+	private double pipeHasFlower;	// probability that a pipe has an flower;
+	private double first_level;		// the percentage of the block is covered by the first floor
+	private double second_level;	// the percentage of cover for the second floor.
+	private double coinBlocks;		// percent of the blocks that are coin blocks
+	private double hasWings;		// chance that an enemy has wings
+
 	private int max_level_length;
 
 	/**
@@ -61,19 +69,26 @@ public class MyLevel extends Level{
 	 */
 	public MyLevel(){
 		this(320, 15);
-		this.first_level = .1;
-		this.second_level = .5;
-		this.difficulty = 0;
-		this.type = 0;
-		this.gaps = 8;
-		this.stairs = 1;
-		this.hills = 15;
-		this.pipes = 5;
-		this.cannons = 2;
-		this.enemies = 30;
-		this.coins = 100;
-		this.coinCluster = 3;
 		this.random = new Random();
+
+		// sets the default values
+		this.type = 0;
+		this.first_level = .2;
+		this.second_level = .2;
+		this.coinBlocks = .2;
+
+		this.pipeHasFlower = .25;
+		this.hasWings = .1;
+		this.gaps = 4;
+		this.hills = 10;
+		this.pipes = 3;
+		this.cannons = 2;
+		this.enemies = 15;
+		this.coins = 75;
+		this.coinCluster = 4;
+		this.powerUpBlocks = 3;
+		this.random = new Random();
+
 
 		//initialize the ground
 		for(int i=0; i<width; i++){
@@ -122,7 +137,7 @@ public class MyLevel extends Level{
 				continue;
 			}
 
-			placeTube(xo, y, (random.nextInt(3) == 2) ? new SpriteTemplate(JUMP_FLOWER, !WINGED) : null);
+			placeTube(xo, y, (random.nextDouble() <= pipeHasFlower) ? new SpriteTemplate(JUMP_FLOWER, !WINGED) : null);
 		}
 
 		while(cannons --> 0) {
@@ -141,6 +156,8 @@ public class MyLevel extends Level{
 			}
 		}
 
+		blockList = new LinkedList<Point>();
+
 		momentum = sweep();
 		int numBlocks = (int) Math.ceil(width * first_level); //number of blocks we want to cover the first floor with
 		int[] nextFloor = getNextFloor(momentum);
@@ -148,7 +165,7 @@ public class MyLevel extends Level{
 		while(numBlocks > 0) {
 			int xo = random.nextInt(width - 20) + 10;
 			int y = nextFloor[xo];
-			if(y == height) {
+			if(y > height - 1 || y < 4) {
 				continue;
 			}
 			int maxdisplacement = 0;
@@ -173,13 +190,10 @@ public class MyLevel extends Level{
 		numBlocks = (int) Math.ceil(width * second_level); //number of blocks we want to cover the first floor with
 		nextFloor = getNextFloor(momentum);
 
-		for(int i: nextFloor){
-			System.out.print(i);
-		}
 		while(numBlocks > 0) {
 			int xo = random.nextInt(width - 20) + 10;
 			int y = nextFloor[xo];
-			if(y < 3) {
+			if(y > height - 1 || y < 4) {
 				continue;
 			}
 			int maxdisplacement = 0;
@@ -200,6 +214,39 @@ public class MyLevel extends Level{
 			numBlocks -= len;
 		}
 
+		if (blockList.size() < 4) { //sanity check
+			System.err.println("NOT ENOUGH BLOCKS!!!!");
+		}
+
+		Collections.shuffle(blockList);
+
+		while(powerUpBlocks --> 0) {
+			Point block = blockList.poll();
+			if (block.y - findFloor(block.x) > 4) {
+				//this is bad...
+				powerUpBlocks ++;
+				continue;
+			}
+			setBlock(block.x, block.y, BLOCK_POWERUP);
+			BLOCKS_EMPTY --;
+			BLOCKS_POWER ++;
+		}
+
+		int numCoinBlocks = (int) Math.ceil(blockList.size() * coinBlocks);
+
+		while(numCoinBlocks --> 0 && !blockList.isEmpty()) {
+			Point block = blockList.poll();
+			if(block.y - findFloor(block.x) > 4) {
+				//this is bad..
+				numCoinBlocks ++;
+				continue;
+			}
+
+			setBlock(block.x, block.y, BLOCK_COIN);
+			BLOCKS_EMPTY --;
+			BLOCKS_COINS ++;
+		}
+
 		momentum = sweep();
 
 		while(enemies --> 0) {
@@ -209,7 +256,14 @@ public class MyLevel extends Level{
 				enemies ++;
 				continue;
 			}
-			placeEnemy(xo, y, GOOMPA, !WINGED);
+
+			int tmp = 2;
+			if((enemies & 1) > 0) {
+				tmp = random.nextInt(100) % 3;
+			}
+			placeEnemy(xo, y, tmp, random.nextDouble() <= hasWings);
+
+			ENEMIES ++;
 		}
 
 		while(coins --> 0) {
@@ -222,6 +276,8 @@ public class MyLevel extends Level{
 			}
 
 			setBlock(x, y, COIN);
+
+			COINS ++;
 		}
 
 		xExit = width - 3;
@@ -439,6 +495,10 @@ public class MyLevel extends Level{
 				default :
 					//do nothing
 			}
+
+			BLOCKS_EMPTY ++;
+
+			blockList.add(new Point(x, y));
 		}
 
 		return true;
