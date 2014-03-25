@@ -22,15 +22,71 @@ public class MyLevelGenerator extends CustomizedLevelGenerator implements LevelG
 	 */
 
 	public LevelInterface generateLevel(GamePlay playerMetrics) {
+		System.out.println("Previous Player Metrics ------------");
+		System.out.println(playerMetrics);
+		DecisionTree tree;
+		LevelInterface level = null;
 		try {
-			DecisionTree tree = new DecisionTree("/home/steven/DecisionTreeLearning");
-			int classification = tree.findClass(new double[]{10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10});
+			//////////////////////CHANGE THE LINES BELOW TO SPAWN DIFFERENT MAPS//////////////////////////////////////
+			tree = new DecisionTree("default.txt"); // this will spawn the default decision tree
+			//tree = new DecisionTree("runner.txt"); // this will spawn the runner decision tree
+			//tree = new DecisionTree("collector.txt"); // this will spawn the collector decision tree
+			//tree = new DecisionTree("loiterer.txt"); // this will spawn the loiterer decision tree
+			//tree = new DecisionTree("slayer.txt"); // this will spawn the loiterer decision tree
+
+			//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+			int classification;
+			if(playerMetrics != null) {
+				classification = tree.findClass(new double[]{
+					playerMetrics.completionTime,  //1
+							   playerMetrics.jumpsNumber,//2
+							   playerMetrics.duckNumber,//3
+							   playerMetrics.timeSpentDucking,//4
+							   playerMetrics.timesPressedRun,//5
+							   playerMetrics.timeSpentRunning,//6
+							   playerMetrics.timeRunningRight,//7
+							   playerMetrics.timeRunningLeft,//8
+							   playerMetrics.kickedShells,//9
+							   playerMetrics.totalTimeLittleMode,//10
+							   playerMetrics.totalTimeLargeMode,//11
+							   playerMetrics.totalTimeFireMode,//12
+							   playerMetrics.timesSwichingPower,//13
+							   playerMetrics.aimlessJumps,//14
+							   playerMetrics.percentageBlocksDestroyed,//15
+							   playerMetrics.percentageCoinBlocksDestroyed,//16
+							   playerMetrics.percentageEmptyBlockesDestroyed,//17
+							   playerMetrics.percentagePowerBlockDestroyed,//18
+							   playerMetrics.timesOfDeathByFallingIntoGap,//19
+							   playerMetrics.timesOfDeathByRedTurtle,//20
+							   playerMetrics.timesOfDeathByGoomba,//21
+							   playerMetrics.timesOfDeathByGreenTurtle,//22
+							   playerMetrics.timesOfDeathByArmoredTurtle,//23
+							   playerMetrics.timesOfDeathByJumpFlower,//24
+							   playerMetrics.timesOfDeathByCannonBall,//25
+							   playerMetrics.timesOfDeathByChompFlower,//26
+							   ((double)(playerMetrics.RedTurtlesKilled +
+								   playerMetrics.GreenTurtlesKilled +
+								   playerMetrics.ArmoredTurtlesKilled +
+								   playerMetrics.GoombasKilled +
+								   playerMetrics.CannonBallKilled +
+								   playerMetrics.JumpFlowersKilled +
+								   playerMetrics.ChompFlowersKilled)) / playerMetrics.totalEnemies,//27
+							   ((double) playerMetrics.coinsCollected) / playerMetrics.totalCoins,//28
+							   ((double) playerMetrics.timeSpentRunning) / playerMetrics.completionTime,//29
+							   ((double) playerMetrics.timeRunningRight) / playerMetrics.timeSpentRunning,//30
+							   ((double) playerMetrics.completionTime) / 175
+				});
+			} else {
+				classification = 0;
+			}
+
 			System.out.println(classification);
+			//LevelInterface level = new MyLevel(320,15,new Random().nextLong(),1,LevelInterface.TYPE_OVERGROUND,playerMetrics);
+			level = new MyLevel(classification);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		//LevelInterface level = new MyLevel(320,15,new Random().nextLong(),1,LevelInterface.TYPE_OVERGROUND,playerMetrics);
-		LevelInterface level = new MyLevel();
 		return level;
 	}
 
@@ -91,6 +147,7 @@ public class MyLevelGenerator extends CustomizedLevelGenerator implements LevelG
 			int skip = 0;
 			int counter = 0;
 
+			System.out.println("Generated Decision Tree ----------------");
 			while(true) {
 				str = in.readLine().trim();
 				if(skip --> 0) {
@@ -105,6 +162,7 @@ public class MyLevelGenerator extends CustomizedLevelGenerator implements LevelG
 				}
 
 				if(readingTree) {
+					System.out.println(str);
 					String[] arr = str.split("[|]");
 					tree[counter++][arr.length - 1] = arr[arr.length - 1].trim();
 				}
@@ -123,8 +181,6 @@ public class MyLevelGenerator extends CustomizedLevelGenerator implements LevelG
 
 		public int findClass(double[] attr){
 
-			System.out.println(map);
-
 			int ptrx = 0;
 			int ptry = 0;
 
@@ -132,6 +188,9 @@ public class MyLevelGenerator extends CustomizedLevelGenerator implements LevelG
 
 			while(true) {
 				String[] curr = tree[ptrx][ptry].split(" ");
+				if(curr[0].contains(":")) {
+					return Integer.parseInt(curr[1]);
+				}
 				if(curr[2].contains(":")){
 					return Integer.parseInt(curr[3]);
 				}
@@ -139,9 +198,6 @@ public class MyLevelGenerator extends CustomizedLevelGenerator implements LevelG
 				String curropt = curr[1].trim();
 				double currval = Double.parseDouble(curr[2].trim());
 				double compAttr = attr[currAttr];
-
-				System.out.println(ptrx + " " + ptry);
-				System.out.println(currAttr + " " + curropt + " " + currval + " " + compAttr);
 
 				double comp = compAttr - currval;
 				if((comp > 0 && curropt.contains(">"))

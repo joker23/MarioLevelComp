@@ -63,30 +63,44 @@ public class MyLevel extends Level{
 	private double hasWings;		// chance that an enemy has wings
 
 	private int max_level_length;
+	private boolean runner, loiterer, slayer, collector;
 
 	/**
 	 * this is a constructor used for testing
 	 */
-	public MyLevel(){
+	public MyLevel(int classification){
 		this(320, 15);
 		this.random = new Random();
 
+		System.out.println("This Map is Generated for : ");
+		// sets classification
+
+		this.runner = (classification & 1 << 0) > 0;
+		this.collector = (classification & 1 << 1) > 0;
+		this.loiterer = (classification & 1 << 2) > 0;
+		this.slayer = (classification & 1 << 3) > 0;
+
+		if(runner) System.out.println("The Runner...");
+		if(collector) System.out.println("The Collector...");
+		if(loiterer) System.out.println("The Loiterer...");
+		if(slayer) System.out.println("The Slayer...");
+
 		// sets the default values
 		this.type = 0;
-		this.first_level = .2;
-		this.second_level = .2;
-		this.coinBlocks = .2;
+		this.first_level = .2 * (loiterer ? 2 : 1);
+		this.second_level = .2 * (loiterer ? 2 : 1);
+		this.coinBlocks = .2 * (collector ? 2 : 1);
 
-		this.pipeHasFlower = .25;
+		this.pipeHasFlower = .25 * (slayer ? 2 : 1);
 		this.hasWings = .1;
-		this.gaps = 4;
-		this.hills = 10;
-		this.pipes = 3;
-		this.cannons = 2;
-		this.enemies = 15;
-		this.coins = 75;
-		this.coinCluster = 4;
-		this.powerUpBlocks = 3;
+		this.gaps = 4 / (runner ? 2 : 1);
+		this.hills = 10 / (runner ? 2 : 1);
+		this.pipes = random.nextInt(3) + 3;
+		this.cannons = random.nextInt(3) + (slayer ? 2 : 0);
+		this.enemies = (random.nextInt(10) + 15) * (slayer ? 4 : 1);
+		this.coins = 75 * (collector ? random.nextInt(2) + 2 : 1);
+		this.coinCluster = 2 * (runner ? 2 : 1) / (loiterer ? 2 : 1);
+		this.powerUpBlocks = 3 * (slayer ? 2 : 1);
 		this.random = new Random();
 
 

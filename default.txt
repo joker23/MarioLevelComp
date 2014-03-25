@@ -1,0 +1,141 @@
+=== Run information ===
+
+Scheme:weka.classifiers.trees.J48 -C 0.25 -M 2
+Relation:     Mario
+Instances:    150
+Attributes:   31
+              jumpsNumber
+              duckNumber
+              timeSpentDucking
+              timesPressedRun
+              timeSpentRunning
+              timeRunningRight
+              timeRunningLeft
+              kickedShells
+              totalTimeLittleMode
+              totalTimeLargeMode
+              totalTimeFireMode
+              timesSwichingPower
+              aimlessJumps
+              percentageBlocksDestroyed
+              percentageCoinBlocksDestroyed
+              percentageEmptyBlockesDestroyed
+              percentagePowerBlockDestroyed
+              timesOfDeathByFallingIntoGap
+              timesOfDeathByRedTurtle
+              timesOfDeathByGoomba
+              timesOfDeathByGreenTurtle
+              timesOfDeathByArmoredTurtle
+              timesOfDeathByJumpFlower
+              timesOfDeathByCannonBall
+              timesOfDeathByChompFlower
+              percentageEnemiesKilled
+              percentageCoinsCollected
+              percentageSpentRunning
+              percentageSpentRunningRight
+              percentageTimeTaken
+              class
+Test mode:10-fold cross-validation
+
+=== Classifier model (full training set) ===
+
+J48 pruned tree
+------------------
+
+percentageBlocksDestroyed <= 0.6
+|   percentageEnemiesKilled <= 0.79
+|   |   percentageCoinsCollected <= 0.75
+|   |   |   percentageCoinBlocksDestroyed <= 0.9
+|   |   |   |   percentageTimeTaken <= 0.29: 1 (20.0)
+|   |   |   |   percentageTimeTaken > 0.29
+|   |   |   |   |   percentageSpentRunning <= 0.82: 0 (25.0)
+|   |   |   |   |   percentageSpentRunning > 0.82: 1 (4.0)
+|   |   |   percentageCoinBlocksDestroyed > 0.9: 3 (4.0/1.0)
+|   |   percentageCoinsCollected > 0.75
+|   |   |   percentageSpentRunning <= 0.84
+|   |   |   |   percentageTimeTaken <= 0.32: 3 (2.0)
+|   |   |   |   percentageTimeTaken > 0.32: 2 (14.0)
+|   |   |   percentageSpentRunning > 0.84: 3 (6.0)
+|   percentageEnemiesKilled > 0.79
+|   |   percentageCoinsCollected <= 0.79
+|   |   |   percentageSpentRunning <= 0.76: 8 (9.0/1.0)
+|   |   |   percentageSpentRunning > 0.76: 9 (5.0)
+|   |   percentageCoinsCollected > 0.79: 10 (2.0/1.0)
+percentageBlocksDestroyed > 0.6
+|   percentageEnemiesKilled <= 0.79
+|   |   percentageCoinsCollected <= 0.74
+|   |   |   percentageTimeTaken <= 0.29: 5 (9.0)
+|   |   |   percentageTimeTaken > 0.29
+|   |   |   |   percentageSpentRunning <= 0.75: 4 (14.0/1.0)
+|   |   |   |   percentageSpentRunning > 0.75: 5 (6.0)
+|   |   percentageCoinsCollected > 0.74
+|   |   |   percentageTimeTaken <= 0.29: 7 (4.0)
+|   |   |   percentageTimeTaken > 0.29
+|   |   |   |   percentageSpentRunning <= 0.89: 6 (9.0)
+|   |   |   |   percentageSpentRunning > 0.89: 7 (2.0)
+|   percentageEnemiesKilled > 0.79
+|   |   percentageCoinsCollected <= 0.75: 12 (7.0/1.0)
+|   |   percentageCoinsCollected > 0.75
+|   |   |   percentageEnemiesKilled <= 0.82: 14 (2.0)
+|   |   |   percentageEnemiesKilled > 0.82: 15 (6.0)
+
+Number of Leaves  : 	19
+
+Size of the tree : 	37
+
+
+Time taken to build model: 0.01 seconds
+
+=== Stratified cross-validation ===
+=== Summary ===
+
+Correctly Classified Instances         121               80.6667 %
+Incorrectly Classified Instances        29               19.3333 %
+Kappa statistic                          0.7847
+Mean absolute error                      0.0261
+Root mean squared error                  0.1513
+Relative absolute error                 23.0478 %
+Root relative squared error             63.7118 %
+Total Number of Instances              150     
+
+=== Detailed Accuracy By Class ===
+
+               TP Rate   FP Rate   Precision   Recall  F-Measure   ROC Area  Class
+                 1         0          1         1         1          1        0
+                 0.958     0.008      0.958     0.958     0.958      0.975    1
+                 0.867     0.015      0.867     0.867     0.867      0.928    2
+                 0.818     0.007      0.9       0.818     0.857      0.949    3
+                 0.692     0.022      0.75      0.692     0.72       0.872    4
+                 0.933     0.037      0.737     0.933     0.824      0.952    5
+                 0.6       0.029      0.6       0.6       0.6        0.774    6
+                 0.333     0.021      0.4       0.333     0.364      0.817    7
+                 0.875     0.007      0.875     0.875     0.875      0.932    8
+                 0.667     0.021      0.571     0.667     0.615      0.822    9
+                 0         0          0         0         0          0.497    10
+                 0         0          0         0         0          0.497    11
+                 0.833     0.007      0.833     0.833     0.833      0.91     12
+                 0         0          0         0         0          0.483    13
+                 0         0.014      0         0         0          0.983    14
+                 0.667     0.021      0.571     0.667     0.615      0.83     15
+Weighted Avg.    0.807     0.014      0.793     0.807     0.798      0.915
+
+=== Confusion Matrix ===
+
+  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p   <-- classified as
+ 25  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0 |  a = 0
+  0 23  0  0  0  1  0  0  0  0  0  0  0  0  0  0 |  b = 1
+  0  0 13  1  1  0  0  0  0  0  0  0  0  0  0  0 |  c = 2
+  0  0  2  9  0  0  0  0  0  0  0  0  0  0  0  0 |  d = 3
+  0  0  0  0  9  3  0  1  0  0  0  0  0  0  0  0 |  e = 4
+  0  0  0  0  1 14  0  0  0  0  0  0  0  0  0  0 |  f = 5
+  0  0  0  0  1  1  6  2  0  0  0  0  0  0  0  0 |  g = 6
+  0  0  0  0  0  0  4  2  0  0  0  0  0  0  0  0 |  h = 7
+  0  0  0  0  0  0  0  0  7  1  0  0  0  0  0  0 |  i = 8
+  0  1  0  0  0  0  0  0  1  4  0  0  0  0  0  0 |  j = 9
+  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0 |  k = 10
+  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0 |  l = 11
+  0  0  0  0  0  0  0  0  0  0  0  0  5  0  0  1 |  m = 12
+  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0 |  n = 13
+  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  2 |  o = 14
+  0  0  0  0  0  0  0  0  0  0  0  0  0  0  2  4 |  p = 15
+

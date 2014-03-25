@@ -1,30 +1,21 @@
 changelog
 =========
 - changed the datarecorder and other things so that they take on myLevel
-- everything works now and we have output
-- now we need someone good at design to design a game :D
-- Made Deterministic ways of generating a map
+- MarioComponents is changed
 
-Logic
-=====
-- Use a BFS to see where we can go
-- Generate randomly from that at first...
-- Generation order:
-	1) ground
-	2) blocks (part of the terrains)
-	3) obstacles (stairs, gaps, cannons, tubes)
-	4) enemies
-	5) coins
-- use line sweep to tell where how mario can move...
-- used the clean method to get rid of all lone Ground blocks to make the game look more legit
+compiling
+=========
+- use ant build
+	$ant
 
-Enemy And Objects
-=====
-- Terrain elements
-	- Pipes 	: prevent continuous runnning
-	- Stairs 	: prevent continuous running
-	- Cannon	: just makes things hard
-	- blocks	: can be stacked on the top
-- enemies
+running
+========
+java -cp bin dk.itu.mario.engine.PlayCustomized
 
+NOTE: first run will not have any player data so it will generate a default map (similar to random)
 
+running different types of Maps
+========
+- go into src/dk/itu/mario/level/generator/MyLevelGenerator.java
+- uncomment the type of map you wish to see
+- then re-compile the game and run it!
