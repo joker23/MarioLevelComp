@@ -13,6 +13,14 @@ import dk.itu.mario.level.MyLevel;
 
 public class MyLevelGenerator extends CustomizedLevelGenerator implements LevelGenerator{
 
+	/**
+	 * classification
+	 * bit 1 : blitz - player likes to run and go fast
+	 * bit 2 : greedy - player likes to make all the money
+	 * bit 3 : loiterer - player likes to go around the map
+	 * bit 4 : slayer - player likes to kill lots of things
+	 */
+
 	public LevelInterface generateLevel(GamePlay playerMetrics) {
 		try {
 			DecisionTree tree = new DecisionTree("/home/steven/DecisionTreeLearning");
